@@ -15,7 +15,11 @@ from typing_extensions import Self
 
 from prefect.exceptions import PrefectHTTPStatusError
 from prefect.logging import get_logger
-from prefect.settings import PREFECT_CLIENT_RETRY_JITTER_FACTOR
+from prefect.settings import (
+    PREFECT_CLIENT_RETRY_JITTER_FACTOR,
+    PREFECT_CLIENT_LIFESPAN_CONTEXT_STARTUP_TIMEOUT,
+    PREFECT_CLIENT_LIFESPAN_CONTEXT_SHOUTDOWN_TIMEOUT,
+)
 from prefect.utilities.math import bounded_poisson_interval, clamped_poisson_interval
 
 # Datastores for lifespan management, keys should be a tuple of thread and app identities.
@@ -83,7 +87,9 @@ async def app_lifespan_context(app: FastAPI) -> ContextManager[None]:
         else:
             # Create a new lifespan manager
             APP_LIFESPANS[key] = context = LifespanManager(
-                app, startup_timeout=30, shutdown_timeout=30
+                app,
+                startup_timeout = PREFECT_CLIENT_LIFESPAN_CONTEXT_STARTUP_TIMEOUT,
+                shutdown_timeout = PREFECT_CLIENT_LIFESPAN_CONTEXT_SHOUTDOWN_TIMEOUT,
             )
             APP_LIFESPANS_REF_COUNTS[key] = 1
 
